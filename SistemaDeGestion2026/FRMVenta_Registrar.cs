@@ -427,10 +427,7 @@ namespace SistemaDeGestion2026
                                     MessageBoxIcon.Information);
                     //LimpiarCasillas();
 
-                    if (PDGDialogo.ShowDialog() == DialogResult.OK) {
-
-                        PRDRecibo.Print();
-                    }
+                    GenerarReciboPdf();
 
 
                     this.actualizar = true;
@@ -474,11 +471,123 @@ namespace SistemaDeGestion2026
 
         private void PRDRecibo_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
         {
-            e.Graphics.DrawString("RECIBO DE VENTA", new Font("Arial", 16, FontStyle.Bold), Brushes.Black, new PointF(100, 100));
-            e.Graphics.DrawString("FECHA: "+ venta.cavpfechor.ToString("dd/MM/yyyy HH:mm:ss"), new Font("Arial", 16, FontStyle.Bold), Brushes.Black, new PointF(100, 120));
+            using (Font titulo = new Font("Arial", 16, FontStyle.Bold))
+            using (Font fuente = new Font("Arial", 10, FontStyle.Regular))
+            using (Font negrita = new Font("Arial", 10, FontStyle.Bold))
+            {
+                float x = e.MarginBounds.Left;
+                float y = e.MarginBounds.Top;
+                float salto = 20;
 
+                e.Graphics.DrawString("RECIBO DE VENTA", titulo, Brushes.Black, x, y);
+                y += 35;
 
+                e.Graphics.DrawString("Código: " + Convert.ToString(venta.pavpcodven), negrita, Brushes.Black, x, y);
+                y += salto;
+                e.Graphics.DrawString("Fecha: " + venta.cavpfechor.ToString("dd/MM/yyyy HH:mm:ss"), fuente, Brushes.Black, x, y);
+                y += salto;
+                e.Graphics.DrawString("Cliente: " + Convert.ToString(cliente.cacerazsoc), fuente, Brushes.Black, x, y);
+                y += 30;
 
+                e.Graphics.DrawString("Producto", negrita, Brushes.Black, x, y);
+                e.Graphics.DrawString("Cant.", negrita, Brushes.Black, x + 250, y);
+                e.Graphics.DrawString("Precio", negrita, Brushes.Black, x + 310, y);
+                e.Graphics.DrawString("Subtotal", negrita, Brushes.Black, x + 390, y);
+                y += salto;
+
+                foreach (liteven itemVenta in listaItems)
+                {
+                    string nombre = Convert.ToString(itemVenta.capddespro);
+                    if (nombre.Length > 34)
+                    {
+                        nombre = nombre.Substring(0, 34);
+                    }
+
+                    e.Graphics.DrawString(nombre, fuente, Brushes.Black, x, y);
+                    e.Graphics.DrawString(itemVenta.caivcanite.ToString(), fuente, Brushes.Black, x + 250, y);
+                    e.Graphics.DrawString(itemVenta.caivpreuni.ToString("F2"), fuente, Brushes.Black, x + 310, y);
+                    e.Graphics.DrawString(itemVenta.caivsubtot.ToString("F2"), fuente, Brushes.Black, x + 390, y);
+                    y += salto;
+                }
+
+                y += 10;
+                e.Graphics.DrawLine(Pens.Black, x, y, x + 470, y);
+                y += salto;
+                e.Graphics.DrawString("Total: " + venta.cavptotven.ToString("F2"), negrita, Brushes.Black, x + 310, y);
+                y += 30;
+                e.Graphics.DrawString("Observación: " + Convert.ToString(venta.cavpobsven), fuente, Brushes.Black, x, y);
+            }
+        }
+
+        private void GenerarReciboPdf()
+        {
+            if (venta == null || string.IsNullOrWhiteSpace(venta.pavpcodven))
+            {
+                MessageBox.Show("La venta no tiene un código válido para generar el recibo.",
+                                "Generar PDF",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                return;
+            }
+
+            const string impresoraPdf = "Microsoft Print to PDF";
+            bool impresoraPdfInstalada = false;
+
+            foreach (string impresora in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
+            {
+                if (string.Equals(impresora, impresoraPdf, StringComparison.OrdinalIgnoreCase))
+                {
+                    impresoraPdfInstalada = true;
+                    break;
+                }
+            }
+
+            if (!impresoraPdfInstalada)
+            {
+                MessageBox.Show("No se encontró la impresora 'Microsoft Print to PDF'.",
+                                "Generar PDF",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog dialogo = new SaveFileDialog())
+            {
+                dialogo.Title = "Guardar recibo en PDF";
+                dialogo.Filter = "Archivo PDF (*.pdf)|*.pdf";
+                dialogo.DefaultExt = "pdf";
+                dialogo.AddExtension = true;
+                dialogo.FileName = "Recibo-" + venta.pavpcodven + ".pdf";
+
+                if (dialogo.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                try
+                {
+                    PRDRecibo.PrinterSettings.PrinterName = impresoraPdf;
+                    PRDRecibo.PrinterSettings.PrintToFile = true;
+                    PRDRecibo.PrinterSettings.PrintFileName = dialogo.FileName;
+                    PRDRecibo.Print();
+
+                    MessageBox.Show("Recibo PDF generado correctamente.",
+                                    "Generar PDF",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("No se pudo generar el PDF: " + ex.Message,
+                                    "Generar PDF",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    PRDRecibo.PrinterSettings.PrintToFile = false;
+                }
+            }
         }
     }
 }
