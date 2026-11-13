@@ -72,7 +72,7 @@ namespace SistemaDeGestion2026
             FRMSplash banner = new FRMSplash();
             banner.ShowDialog();
             this.Opacity = 1;
-            Estado_1();
+            Estado_2();
         }
 
         private void BTNPersonas_Click(object sender, EventArgs e)

@@ -186,5 +186,19 @@ namespace SistemaDeGestion2026
                 e.Cancel = true;
             }
         }
+
+        private void BTNReporte_Click(object sender, EventArgs e)
+        {
+            xreport reporte = new xreport();
+            reporte.titulo = "Reporte de Clientes";
+            reporte.descripcion = "Listado de Clientes registrados en el sistema surmarket";
+            reporte.hoja = false;
+            reporte.orientacion = true;
+            reporte.letra = 12;
+            int col = 8;
+            float[] anchoColumnas = { 15, 15, 12, 28, 22, 15, 25, 15 };
+            List<string> titulosColumnas = new List<string>() { "Código", "Estado", "Cédula", "Nombre", "Razón social", "NIT", "Dirección", "Teléfono" };
+            reporte.GenerarReporte(col, anchoColumnas, titulosColumnas, lista_clientes);
+        }
     }
 }

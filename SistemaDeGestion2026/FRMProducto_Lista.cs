@@ -215,5 +215,23 @@ namespace SistemaDeGestion2026
         }
 
         #endregion
+
+        private void BTNReporte_Click(object sender, EventArgs e)
+        {
+            xreport reporte = new xreport();
+            reporte.titulo = "Reporte de Productos";
+            reporte.descripcion = "Listado de productos registrados en el sistema surmarket";
+            reporte.hoja = false;
+            reporte.orientacion = true;
+            reporte.letra = 8;
+            int col = 13;
+            float[] anchoColumnas = { 12, 12, 16, 16, 20, 18, 14, 14, 14, 12, 10, 14, 25 };
+            List<string> titulosColumnas = new List<string>()
+            {
+                "Código", "Estado", "Modelo", "Código de barras", "Producto", "Categoría",
+                "Género", "Marca", "Color", "Talla", "Stock", "Precio venta", "Descripción"
+            };
+            reporte.GenerarReporte(col, anchoColumnas, titulosColumnas, lista_productos);
+        }
     }
 }
